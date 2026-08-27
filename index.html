@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AirSound Pro — 无界之声</title>
+  <style>
+    /* ===== Reset & Base ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: auto; -webkit-font-smoothing: antialiased; }
+    body {
+      background: #000;
+      color: #f5f5f7;
+      font-family: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ===== Nav Bar ===== */
+    .nav {
+      position: fixed; top: 0; left: 0; width: 100%;
+      height: 52px; z-index: 1000;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      display: flex; align-items: center; justify-content: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      transition: transform 0.4s ease;
+    }
+    .nav.hidden { transform: translateY(-100%); }
+    .nav-inner {
+      max-width: 1024px; width: 100%;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 22px;
+    }
+    .nav-logo { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+    .nav-links { display: flex; gap: 28px; align-items: center; }
+    .nav-links a { font-size: 12px; color: #f5f5f7; opacity: 0.88; transition: opacity 0.2s; }
+    .nav-links a:hover { opacity: 1; }
+    .nav-buy {
+      background: #2997ff; color: #fff !important;
+      padding: 4px 14px; border-radius: 16px;
+      font-size: 12px; font-weight: 500;
+    }
+    @media (max-width: 768px) {
+      .nav-links a:not(.nav-buy) { display: none; }
+    }
+
+    /* ===== Progress Bar ===== */
+    .progress-bar {
+      position: fixed; top: 52px; left: 0; height: 2px; width: 0%;
+      background: linear-gradient(90deg, #2997ff, #5e7fff);
+      z-index: 999;
+    }
+
+    /* ===== Section Base ===== */
+    .section {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      position: relative; text-align: center;
+      padding: 80px 22px;
+      overflow: hidden;
+    }
+    .section-label {
+      font-size: 13px; font-weight: 600;
+      color: #2997ff; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(40px, 7vw, 88px);
+      font-weight: 700; letter-spacing: -0.02em;
+      line-height: 1.05; margin-bottom: 20px;
+      background: linear-gradient(180deg, #f5f5f7, #a1a1a6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .section-subtitle {
+      font-size: clamp(19px, 2.4vw, 28px);
+      color: #a1a1a6; max-width: 680px;
+      line-height: 1.4; font-weight: 400;
+    }
+
+    /* ===== Screen 1: Hero ===== */
+    #hero {
+      background: radial-gradient(ellipse at 50% 60%, rgba(41,151,255,0.08), transparent 60%), #000;
+    }
+    .hero-product-name {
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 600; letter-spacing: -0.02em;
+      color: #f5f5f7; margin-bottom: 8px;
+    }
+    .hero-tagline {
+      font-size: clamp(20px, 2.8vw, 32px);
+      color: #a1a1a6; margin-bottom: 50px;
+    }
+    .hero-image-wrap {
+      position: relative; width: 90%; max-width: 900px;
+      margin: 0 auto;
+    }
+    .hero-image {
+      width: 100%; border-radius: 24px;
+      box-shadow: 0 0 80px rgba(41,151,255,0.12);
+    }
+    .scroll-indicator {
+      position: absolute; bottom: 30px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; flex-direction: column;
+      align-items: center; gap: 8px;
+      color: #86868b; font-size: 12px;
+    }
+    .scroll-arrow {
+      width: 24px; height: 38px;
+      border: 2px solid #515154; border-radius: 12px;
+      position: relative;
+    }
+    .scroll-arrow::after {
+      content: ''; position: absolute;
+      top: 8px; left: 50%; transform: translateX(-50%);
+      width: 4px; height: 8px; background: #86868b;
+      border-radius: 2px;
+      animation: scrollDot 1.8s ease-in-out infinite;
+    }
+    @keyframes scrollDot {
+      0%, 100% { opacity: 0; transform: translate(-50%, 0); }
+      50% { opacity: 1; transform: translate(-50%, 8px); }
+    }
+
+    /* ===== Screen 2: Video ===== */
+    #video-section {
+      background: #000;
+      padding: 0;
+    }
+    .video-container {
+      position: relative; width: 100%;
+      max-width: 1100px; aspect-ratio: 16/9;
+      border-radius: 20px; overflow: hidden;
+      background: #0a0a0a;
+    }
+    #product-canvas {
+      width: 100%; height: 100%;
+      display: block; pointer-events: none;
+    }
+    .video-overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.5) 100%);
+    }
+    .video-overlay-title {
+      font-size: clamp(28px, 5vw, 56px);
+      font-weight: 700; letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+    .video-overlay-sub {
+      font-size: clamp(16px, 2vw, 22px);
+      color: #a1a1a6;
+    }
+    .video-progress-hint {
+      position: absolute; bottom: 24px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px; color: #86868b;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .video-progress-track {
+      width: 200px; height: 3px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px; overflow: hidden;
+    }
+    .video-progress-fill {
+      width: 0%; height: 100%;
+      background: #2997ff; border-radius: 2px;
+    }
+
+    /* ===== Screen 3: Sound ===== */
+    #sound {
+      background: radial-gradient(ellipse at 50% 40%, rgba(94,127,255,0.06), transparent 50%), #000;
+    }
+    .wave-visualizer {
+      display: flex; align-items: center; justify-content: center;
+      gap: 4px; height: 120px; margin: 40px 0;
+    }
+    .wave-bar {
+      width: 4px; min-height: 8px;
+      background: linear-gradient(180deg, #2997ff, #5e7fff);
+      border-radius: 2px;
+      transform-origin: bottom;
+    }
+    .sound-features {
+      display: flex; gap: 40px; flex-wrap: wrap;
+      justify-content: center; margin-top: 50px;
+      max-width: 900px;
+    }
+    .sound-feature {
+      flex: 1; min-width: 200px;
+      padding: 0 20px;
+    }
+    .sound-feature-num {
+      font-size: clamp(40px, 5vw, 64px);
+      font-weight: 700; color: #f5f5f7;
+      letter-spacing: -0.03em; line-height: 1;
+      margin-bottom: 8px;
+    }
+    .sound-feature-unit {
+      font-size: 24px; color: #86868b;
+      font-weight: 400;
+    }
+    .sound-feature-label {
+      font-size: 15px; color: #a1a1a6;
+      margin-top: 6px;
+    }
+
+    /* ===== Screen 4: Design ===== */
+    #design {
+      background: #000;
+    }
+    .design-image-wrap {
+      position: relative; width: 90%; max-width: 900px;
+      border-radius: 24px; overflow: hidden;
+      margin: 40px 0;
+      box-shadow: 0 0 60px rgba(255,255,255,0.04);
+    }
+    .design-image { width: 100%; }
+    .design-callouts {
+      display: flex; gap: 30px; flex-wrap: wrap;
+      justify-content: center; max-width: 800px;
+    }
+    .design-callout {
+      flex: 1; min-width: 180px;
+    }
+    .design-callout-icon {
+      font-size: 32px; margin-bottom: 12px;
+    }
+    .design-callout-title {
+      font-size: 18px; font-weight: 600;
+      color: #f5f5f7; margin-bottom: 6px;
+    }
+    .design-callout-desc {
+      font-size: 14px; color: #86868b;
+      line-height: 1.5;
+    }
+
+    /* ===== Screen 5: Battery ===== */
+    #battery {
+      background: radial-gradient(ellipse at 50% 50%, rgba(48,209,88,0.05), transparent 55%), #000;
+    }
+    .battery-ring-wrap {
+      position: relative; width: 280px; height: 280px;
+      margin: 30px 0;
+    }
+    .battery-ring {
+      width: 100%; height: 100%;
+      transform: rotate(-90deg);
+    }
+    .battery-ring circle {
+      fill: none; stroke-width: 10;
+    }
+    .battery-ring .track { stroke: rgba(255,255,255,0.08); }
+    .battery-ring .fill {
+      stroke: #30d158; stroke-linecap: round;
+      stroke-dasharray: 817; stroke-dashoffset: 817;
+    }
+    .battery-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .battery-num {
+      font-size: 64px; font-weight: 700;
+      letter-spacing: -0.03em; color: #f5f5f7;
+    }
+    .battery-unit { font-size: 28px; color: #86868b; }
+    .battery-label { font-size: 14px; color: #a1a1a6; margin-top: 4px; }
+    .battery-stats {
+      display: flex; gap: 50px; margin-top: 40px;
+      flex-wrap: wrap; justify-content: center;
+    }
+    .battery-stat {
+      text-align: center;
+    }
+    .battery-stat-num {
+      font-size: 36px; font-weight: 700;
+      color: #f5f5f7;
+    }
+    .battery-stat-label {
+      font-size: 14px; color: #86868b;
+      margin-top: 4px;
+    }
+
+    /* ===== Screen 6: Colors / Buy ===== */
+    #colors {
+      background: linear-gradient(180deg, #000 0%, #0a0a0a 100%);
+    }
+    .colors-image-wrap {
+      width: 90%; max-width: 900px;
+      border-radius: 20px; overflow: hidden;
+      margin: 40px 0;
+    }
+    .colors-image { width: 100%; }
+    .color-picker {
+      display: flex; gap: 16px; margin: 30px 0;
+      justify-content: center;
+    }
+    .color-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%; cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.2);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .color-dot:hover { transform: scale(1.15); }
+    .color-dot.active { border-color: #2997ff; transform: scale(1.1); }
+    .color-name {
+      font-size: 16px; color: #a1a1a6;
+      margin-bottom: 30px; min-height: 24px;
+    }
+    .buy-section {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 16px;
+    }
+    .price {
+      font-size: 28px; color: #f5f5f7;
+      font-weight: 600;
+    }
+    .price .currency { color: #86868b; font-size: 20px; }
+    .buy-btn {
+      background: #2997ff; color: #fff;
+      padding: 14px 40px; border-radius: 980px;
+      font-size: 17px; font-weight: 500;
+      border: none; cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .buy-btn:hover { background: #0077ed; transform: scale(1.03); }
+    .footer-note {
+      font-size: 12px; color: #86868b;
+      margin-top: 20px;
+    }
+
+    /* ===== Utility ===== */
+    .reveal { opacity: 0; transform: translateY(40px); }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <div class="nav-logo">AirSound</div>
+      <div class="nav-links">
+        <a href="#sound">音质</a>
+        <a href="#design">设计</a>
+        <a href="#battery">续航</a>
+        <a href="#colors" class="nav-buy">购买</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- Screen 1: Hero -->
+  <section class="section" id="hero">
+    <div class="hero-product-name reveal">AirSound Pro</div>
+    <div class="hero-tagline reveal">无界之声，沉浸其中</div>
+    <div class="hero-image-wrap">
+      <img src="images/hero-earbuds.jpg" alt="AirSound Pro 无线蓝牙耳机" class="hero-image" id="heroImage">
+    </div>
+    <div class="scroll-indicator">
+      <span>向下滚动</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </section>
+
+  <!-- Screen 2: Video (scroll-driven) -->
+  <section class="section" id="video-section">
+    <div class="section-label reveal">沉浸体验</div>
+    <div class="section-title reveal">每一帧，皆是精工</div>
+    <div class="video-container">
+      <canvas id="product-canvas"></canvas>
+      <div class="video-overlay">
+        <div class="video-overlay-title">设计与声学的交融</div>
+        <div class="video-overlay-sub">滚动以探索</div>
+      </div>
+      <div class="video-progress-hint">
+        <span>视频进度</span>
+        <div class="video-progress-track">
+          <div class="video-progress-fill" id="videoProgressFill"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 3: Sound -->
+  <section class="section" id="sound">
+    <div class="section-label reveal">音质</div>
+    <div class="section-title reveal">纯粹，沉浸，撼动</div>
+    <div class="section-subtitle reveal">定制驱动单元配合自适应主动降噪，让每一个音符都如临现场。</div>
+    <div class="wave-visualizer" id="waveVisualizer"></div>
+    <div class="sound-features">
+      <div class="sound-feature reveal">
+        <div class="sound-feature-num"><span data-count="24">0</span>-bit</div>
+        <div class="sound-feature-label">无损音质解析</div>
+      </div>
+      <div class="sound-feature reveal">
+        <div class="sound-feature-num"><span data-count="96">0</span><span class="sound-feature-unit">kHz</span></div>
+        <div class="sound-feature-label">高解析采样率</div>
+      </div>
+      <div class="sound-feature reveal">
+        <div class="sound-feature-num"><span data-count="48">0</span><span class="sound-feature-unit">dB</span></div>
+        <div class="sound-feature-label">主动降噪深度</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 4: Design -->
+  <section class="section" id="design">
+    <div class="section-label reveal">设计</div>
+    <div class="section-title reveal">匠心铸就</div>
+    <div class="section-subtitle reveal">从每一道弧线到每一处接缝，皆为舒适与美学而生。</div>
+    <div class="design-image-wrap">
+      <img src="images/design-detail.jpg" alt="AirSound Pro 设计细节" class="design-image">
+    </div>
+    <div class="design-callouts">
+      <div class="design-callout reveal">
+        <div class="design-callout-icon"> lightweight</div>
+        <div class="design-callout-title">轻至 4.8 克</div>
+        <div class="design-callout-desc">单耳仅重 4.8 克，全天佩戴无感负担。</div>
+      </div>
+      <div class="design-callout reveal">
+        <div class="design-callout-icon"> water-resistant</div>
+        <div class="design-callout-title">IPX4 防水</div>
+        <div class="design-callout-desc">抗汗抗水，运动无忧，风雨同行。</div>
+      </div>
+      <div class="design-callout reveal">
+        <div class="design-callout-icon"> ergonomic</div>
+        <div class="design-callout-title">人体工学</div>
+        <div class="design-callout-desc">多尺寸硅胶耳塞，贴合每一种耳型。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 5: Battery -->
+  <section class="section" id="battery">
+    <div class="section-label reveal">续航</div>
+    <div class="section-title reveal">电力持久</div>
+    <div class="section-subtitle reveal">一次充电，全天陪伴。快充 5 分钟，聆听 1 小时。</div>
+    <div class="battery-ring-wrap">
+      <svg class="battery-ring" viewBox="0 0 280 280">
+        <circle class="track" cx="140" cy="140" r="130"></circle>
+        <circle class="fill" id="batteryRingFill" cx="140" cy="140" r="130"></circle>
+      </svg>
+      <div class="battery-center">
+        <div class="battery-num"><span data-count="36">0</span><span class="battery-unit">h</span></div>
+        <div class="battery-label">总续航时长</div>
+      </div>
+    </div>
+    <div class="battery-stats">
+      <div class="battery-stat reveal">
+        <div class="battery-stat-num"><span data-count="8">0</span>h</div>
+        <div class="battery-stat-label">单次聆听</div>
+      </div>
+      <div class="battery-stat reveal">
+        <div class="battery-stat-num"><span data-count="5">0</span>min</div>
+        <div class="battery-stat-label">快充至 1 小时</div>
+      </div>
+      <div class="battery-stat reveal">
+        <div class="battery-stat-num"><span data-count="3">0</span>x</div>
+        <div class="battery-stat-label">充电速度提升</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 6: Colors / Buy -->
+  <section class="section" id="colors">
+    <div class="section-label reveal">选择</div>
+    <div class="section-title reveal">找到你的色彩</div>
+    <div class="colors-image-wrap">
+      <img src="images/colors.jpg" alt="AirSound Pro 多色选择" class="colors-image">
+    </div>
+    <div class="color-picker" id="colorPicker">
+      <div class="color-dot active" style="background:#1d1d1f" data-name="深邃黑"></div>
+      <div class="color-dot" style="background:#f5f5f7" data-name="星光白"></div>
+      <div class="color-dot" style="background:#4a4a4e" data-name="太空灰"></div>
+      <div class="color-dot" style="background:#1a2a4a" data-name="午夜蓝"></div>
+      <div class="color-dot" style="background:#c8a878" data-name="玫瑰金"></div>
+    </div>
+    <div class="color-name" id="colorName">深邃黑</div>
+    <div class="buy-section">
+      <div class="price reveal"><span class="currency">¥</span>1,299</div>
+      <button class="buy-btn reveal" id="buyBtn">购买</button>
+      <div class="footer-note reveal">免息分期，顺丰速递，30天无理由退换</div>
+    </div>
+  </section>
+
+  <!-- GSAP CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollToPlugin.min.js"></script>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+
+    /* ===== Nav: hide on scroll down, show on scroll up ===== */
+    let lastScrollY = 0;
+    const nav = document.getElementById('nav');
+    ScrollTrigger.create({
+      start: 'top -80',
+      end: 99999,
+      onUpdate: (self) => {
+        const y = window.scrollY;
+        if (y > 80 && y > lastScrollY) {
+          nav.classList.add('hidden');
+        } else {
+          nav.classList.remove('hidden');
+        }
+        lastScrollY = y;
+      }
+    });
+
+    /* ===== Progress Bar ===== */
+    ScrollTrigger.create({
+      start: 'top top',
+      end: 'max',
+      onUpdate: (self) => {
+        gsap.to('#progressBar', { width: (self.progress * 100) + '%', duration: 0.1, ease: 'none' });
+      }
+    });
+
+    /* ===== Screen 1: Hero Entrance ===== */
+    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    heroTl
+      .to('.hero-product-name', { opacity: 1, y: 0, duration: 0.8, delay: 0.3 })
+      .to('.hero-tagline', { opacity: 1, y: 0, duration: 0.7 }, '-=0.4')
+      .from('#heroImage', { opacity: 0, y: 60, scale: 0.96, duration: 1.2, ease: 'power2.out' }, '-=0.5');
+
+    /* Hero image gentle float */
+    gsap.to('#heroImage', {
+      y: -18,
+      duration: 3,
+      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true
+    });
+
+    /* ===== Screen 2: Scroll-Driven Canvas "Video" ===== */
+    /* Apple-style scroll-driven frame sequence on canvas.
+       Scroll progress 0→70% maps to full animation playback.
+       At 70%, auto-advances to the next screen. */
+    const canvas = document.getElementById('product-canvas');
+    const ctx = canvas.getContext('2d');
+    const videoProgressFill = document.getElementById('videoProgressFill');
+    let videoAutoAdvanced = false;
+    let isAutoScrolling = false;
+    let currentProgress = 0;
+
+    /* Pre-generate floating particles */
+    const particles = [];
+    for (let i = 0; i < 60; i++) {
+      particles.push({
+        x: Math.random(),
+        y: Math.random(),
+        size: 1 + Math.random() * 3,
+        speed: 0.3 + Math.random() * 0.8,
+        offset: Math.random() * Math.PI * 2,
+        hue: 200 + Math.random() * 40
+      });
+    }
+
+    /* Canvas state: progress (scroll-driven) + time (continuous motion) */
+    let animTime = 0;
+
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1, rect.width * dpr);
+      canvas.height = Math.max(1, rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    /* Draw a stylized earbud shape */
+    function drawEarbud(ctx, cx, cy, scale, rotation, alpha) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rotation);
+      ctx.scale(scale, scale);
+      ctx.globalAlpha = alpha;
+
+      /* Main body — rounded teardrop */
+      const grad = ctx.createLinearGradient(-40, -80, 40, 80);
+      grad.addColorStop(0, '#3a3a3c');
+      grad.addColorStop(0.5, '#1d1d1f');
+      grad.addColorStop(1, '#0a0a0a');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(0, 10, 34, 62, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      /* Highlight edge */
+      ctx.strokeStyle = 'rgba(120,130,150,0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      /* Speaker stem / tip */
+      ctx.fillStyle = '#2a2a2c';
+      ctx.beginPath();
+      ctx.ellipse(0, -52, 16, 22, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(140,150,170,0.3)';
+      ctx.stroke();
+
+      /* Silicone tip */
+      ctx.fillStyle = '#48484a';
+      ctx.beginPath();
+      ctx.ellipse(0, -68, 12, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      /* Mesh grille dots */
+      ctx.fillStyle = 'rgba(80,90,110,0.6)';
+      for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 3; col++) {
+          ctx.beginPath();
+          ctx.arc(-8 + col * 8, -6 + row * 7, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      /* Glossy highlight */
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.beginPath();
+      ctx.ellipse(-12, -10, 10, 30, -0.3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    /* Main render function — draws the "video" frame for a given progress (0→1).
+       Uses animTime for continuous motion (particles, waves) so it feels alive
+       even when paused at a scroll position, like a real video. */
+    function renderFrame(progress) {
+      animTime += 0.016;
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      if (w < 2 || h < 2) { resizeCanvas(); return; }
+      const cx = w / 2;
+      const cy = h / 2;
+      const minDim = Math.min(w, h);
+
+      /* Clear with deep black */
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, w, h);
+
+      /* Background radial glow that intensifies with progress */
+      const glowR = Math.max(1, minDim * (0.3 + progress * 0.35));
+      const glowGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowR);
+      const glowAlpha = 0.05 + progress * 0.25;
+      glowGrad.addColorStop(0, 'rgba(41,151,255,' + glowAlpha + ')');
+      glowGrad.addColorStop(1, 'rgba(41,151,255,0)');
+      ctx.fillStyle = glowGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      /* Expanding sound wave rings — continuous time-based pulsing */
+      const ringCount = 6;
+      for (let i = 0; i < ringCount; i++) {
+        const phase = ((animTime * 0.25) + i / ringCount) % 1;
+        const radius = Math.max(1, phase * minDim * 0.42);
+        const alpha = (1 - phase) * 0.25 * Math.min(progress * 3 + 0.1, 1);
+        ctx.strokeStyle = 'rgba(94,127,255,' + alpha + ')';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      /* Floating particles — continuous upward drift, intensity scales with progress */
+      particles.forEach((p) => {
+        const drift = (animTime * p.speed * 0.15 + p.offset * 0.1) % 1;
+        const py = (1 - drift) * h;
+        const px = p.x * w + Math.sin(animTime * 0.8 + p.offset) * 20;
+        const pAlpha = 0.15 + progress * 0.4;
+        const pSize = p.size * (0.5 + progress * 0.8);
+        ctx.fillStyle = 'hsla(' + p.hue + ', 80%, 70%, ' + pAlpha + ')';
+        ctx.beginPath();
+        ctx.arc(px, py, Math.max(0.5, pSize), 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      /* Rotating light ring around earbud (Saturn-ring effect) — time + progress */
+      if (progress > 0.1) {
+        const ringProgress = Math.min((progress - 0.1) / 0.5, 1);
+        const ringR = minDim * 0.18;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(animTime * 0.6 + progress * Math.PI * 2);
+        ctx.strokeStyle = 'rgba(41,151,255,' + (ringProgress * 0.5) + ')';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, ringR, ringR * 0.3, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        /* Second ring */
+        ctx.rotate(Math.PI / 3);
+        ctx.strokeStyle = 'rgba(94,127,255,' + (ringProgress * 0.3) + ')';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, ringR * 1.2, ringR * 0.36, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      /* Central earbud — fades in, rotates, scales up (purely progress-driven) */
+      const earbudAlpha = Math.min(progress * 4, 1);
+      const earbudScale = 0.4 + progress * 0.8;
+      const earbudRotation = progress * Math.PI * 2.5; /* ~1.25 full rotations */
+      drawEarbud(ctx, cx, cy, earbudScale, earbudRotation, earbudAlpha);
+
+      /* Final flash burst at the end */
+      if (progress > 0.85) {
+        const flashAlpha = (progress - 0.85) / 0.15 * 0.3;
+        ctx.fillStyle = 'rgba(255,255,255,' + flashAlpha + ')';
+        ctx.fillRect(0, 0, w, h);
+      }
+    }
+
+    /* Continuous RAF render loop — keeps canvas alive at all times */
+    function renderLoop() {
+      const animProgress = Math.min(currentProgress / 0.7, 1);
+      renderFrame(animProgress);
+      requestAnimationFrame(renderLoop);
+    }
+    renderLoop();
+
+    /* ScrollTrigger: pin + scrub + auto-advance at 70% */
+    const scrollDistance = window.innerHeight * 2.5;
+    ScrollTrigger.create({
+      trigger: '#video-section',
+      start: 'top top',
+      end: '+=' + scrollDistance,
+      pin: true,
+      pinSpacing: true,
+      scrub: 1,
+      anticipatePin: 1,
+      onUpdate: (self) => {
+        currentProgress = self.progress;
+
+        /* Update progress bar fill (0→70% scroll = 0→100% animation) */
+        const animProgress = Math.min(self.progress / 0.7, 1);
+        videoProgressFill.style.width = (animProgress * 100) + '%';
+
+        /* At 70% scroll → animation finished, auto-advance to next screen */
+        if (self.progress >= 0.7 && !videoAutoAdvanced && !isAutoScrolling) {
+          videoAutoAdvanced = true;
+          isAutoScrolling = true;
+          gsap.to(window, {
+            scrollTo: { y: '#sound', autoKill: false },
+            duration: 1.2,
+            ease: 'power2.inOut',
+            onComplete: () => { isAutoScrolling = false; }
+          });
+        }
+
+        /* Reset flag when scrolling back up */
+        if (self.progress < 0.35) {
+          videoAutoAdvanced = false;
+        }
+      },
+      onLeaveBack: () => { videoAutoAdvanced = false; }
+    });
+
+    /* Keep canvas crisp on resize */
+    window.addEventListener('resize', resizeCanvas);
+
+    /* ===== Screen 3: Sound Wave Visualizer ===== */
+    const waveContainer = document.getElementById('waveVisualizer');
+    const barCount = 48;
+    for (let i = 0; i < barCount; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'wave-bar';
+      waveContainer.appendChild(bar);
+    }
+
+    /* Animated wave bars (looping) */
+    gsap.to('.wave-bar', {
+      height: () => gsap.utils.random(20, 100) + 'px',
+      duration: 0.6,
+      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true,
+      stagger: { each: 0.03, from: 'center' }
+    });
+
+    /* Sound section reveal */
+    gsap.utils.toArray('#sound .reveal').forEach((el) => {
+      gsap.to(el, {
+        opacity: 1, y: 0, duration: 0.8, ease: 'power2.out',
+        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' }
+      });
+    });
+
+    /* Sound counters */
+    gsap.utils.toArray('#sound [data-count]').forEach((el) => {
+      const target = parseInt(el.dataset.count);
+      const obj = { val: 0 };
+      ScrollTrigger.create({
+        trigger: el, start: 'top 80%',
+        onEnter: () => {
+          gsap.to(obj, {
+            val: target, duration: 1.5, ease: 'power2.out',
+            onUpdate: () => { el.textContent = Math.round(obj.val); }
+          });
+        }
+      });
+    });
+
+    /* ===== Screen 4: Design ===== */
+    gsap.utils.toArray('#design .reveal').forEach((el) => {
+      gsap.to(el, {
+        opacity: 1, y: 0, duration: 0.8, ease: 'power2.out',
+        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' }
+      });
+    });
+
+    /* Design image parallax + scale entrance */
+    gsap.fromTo('.design-image', { scale: 1.15 }, {
+      scale: 1, ease: 'none',
+      scrollTrigger: { trigger: '#design', start: 'top bottom', end: 'bottom top', scrub: 1 }
+    });
+
+    /* ===== Screen 5: Battery ===== */
+    gsap.utils.toArray('#battery .reveal').forEach((el) => {
+      gsap.to(el, {
+        opacity: 1, y: 0, duration: 0.8, ease: 'power2.out',
+        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' }
+      });
+    });
+
+    /* Battery ring fill animation */
+    const ringFill = document.getElementById('batteryRingFill');
+    const ringCircumference = 817; // 2 * PI * 130 ≈ 817
+    ScrollTrigger.create({
+      trigger: '#battery', start: 'top 70%',
+      onEnter: () => {
+        gsap.to(ringFill, {
+          strokeDashoffset: 0, duration: 2, ease: 'power2.inOut'
+        });
+      }
+    });
+
+    /* Battery counters */
+    gsap.utils.toArray('#battery [data-count]').forEach((el) => {
+      const target = parseInt(el.dataset.count);
+      const obj = { val: 0 };
+      ScrollTrigger.create({
+        trigger: el, start: 'top 80%',
+        onEnter: () => {
+          gsap.to(obj, {
+            val: target, duration: 1.8, ease: 'power2.out',
+            onUpdate: () => { el.textContent = Math.round(obj.val); }
+          });
+        }
+      });
+    });
+
+    /* ===== Screen 6: Colors ===== */
+    gsap.utils.toArray('#colors .reveal').forEach((el) => {
+      gsap.to(el, {
+        opacity: 1, y: 0, duration: 0.8, ease: 'power2.out',
+        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' }
+      });
+    });
+
+    /* Color picker interaction */
+    const colorPicker = document.getElementById('colorPicker');
+    const colorName = document.getElementById('colorName');
+    colorPicker.addEventListener('click', (e) => {
+      const dot = e.target.closest('.color-dot');
+      if (!dot) return;
+      document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+      dot.classList.add('active');
+      colorName.textContent = dot.dataset.name;
+      gsap.fromTo(colorName, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4 });
+    });
+
+    /* Buy button pulse */
+    gsap.to('#buyBtn', {
+      scale: 1.04, duration: 1.2, ease: 'sine.inOut',
+      repeat: -1, yoyo: true,
+      scrollTrigger: { trigger: '#buyBtn', start: 'top 90%' }
+    });
+
+    /* Colors image entrance */
+    gsap.from('.colors-image', {
+      opacity: 0, y: 50, duration: 1, ease: 'power2.out',
+      scrollTrigger: { trigger: '#colors', start: 'top 70%' }
+    });
+
+    /* ===== Smooth scroll for nav links ===== */
+    document.querySelectorAll('.nav-links a').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = link.getAttribute('href');
+        gsap.to(window, { scrollTo: { y: target, offsetY: 52 }, duration: 1, ease: 'power2.inOut' });
+      });
+    });
+
+    /* ===== Refresh on load & resize ===== */
+    window.addEventListener('load', () => ScrollTrigger.refresh());
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => ScrollTrigger.refresh(), 200);
+    });
+  </script>
+</body>
+</html>
